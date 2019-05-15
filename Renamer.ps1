@@ -19,7 +19,7 @@ None. Renamer.ps1 does not generate any output.
 PS> .\Renamer.ps1
 #>
 
-#Set-ExecutionPolicy RemoteSigned
+# Set-ExecutionPolicy RemoteSigned
 Set-ExecutionPolicy -Scope process -ExecutionPolicy allsigned
 
 # Declarations
@@ -33,12 +33,11 @@ $network = [int]$fullIPAddress[1]
 $vlan = "{0:000}" -f [int]$fullIPAddress[2]
 $ipAddress = "{0:000}" -f [int]$fullIPAddress[3]
 
+$currentComputerName = gc env:computername
 $newCompName = $department + $vlan + $ipAddress
-$joinDomain = $false
-$useDestOU = $true
 
 # Check if computer has a BIU network address: 132.71.*.*
-if ($network -eq 71)
+if ($network -eq 70)
 {
     Write-Host -ForegroundColor Green "Network ready"
 }
@@ -48,27 +47,32 @@ else
     exit 1
 }
 
+$credential = New-Object System.Management.Automation.PsCredential("[DOMAIN\JoinUser]", (ConvertTo-SecureString "[password]" -AsPlainText -Force))
+$domaininfo = New-Object DirectoryServices.DirectoryEntry(LDAP://[DOMAIN_CONTROLLER_IP_ADDRESS]/[domain root path e.g. dc = mydomain, dc = local], "[DOMAIN\ReadOnlyUser]", "[password]")
+$ComputerName = gc env:computername
+$searcher = New-Object System.DirectoryServices.DirectorySearcher($domaininfo)
+$searcher.filter = "(cn=$ComputerName)"
+$searchparm = $searcher.FindOne()
+
+$joinDomain = $true
+$renameComp = $true
+
+# Check if rename is needed
+if ($newCompName -eq $currentComputerName)
+{
+    $renameComp = $false
+}
+
 # Check if computer is already joined to domain
 if ((Get-WmiObject win32_computersystem).PartOfDomain)
 {
     Write-Host -ForegroundColor Green "Computer is already joined to domain"
     # Check if a Computer account object already exist in AD
-    try
-    {
-        Get-ADComputer -Identity $newCompName
-        Write-Host -ForegroundColor Green "Computer object exists"
-        exit
-    }
-    catch
-    {
-        Write-Host -ForegroundColor Green "$newCompName Computer object not found"
-        $joinDomain = $true
-    }
+    $joinDomain = $false
 }
 else
 {
     Write-Host -ForegroundColor Green "Computer is in a Workgroup!"
-    $joinDomain = $true
 }
 
 if ($joinDomain)
@@ -76,13 +80,13 @@ if ($joinDomain)
     try
     {
         Write-Host -ForegroundColor Green "Trying to join computer $newCompName to domain $domain"
-        if ($useDestOU)
+        if (!($searchparm))
         {
-            Add-Computer -DomainName $domain -NewName $newCompName -OUPath $destOU -Credential $shortDomain\ -Restart -ErrorAction Stop
+            #            Add-Computer -DomainName $domain -OUPath $destOU -Credential $credential $shortDomain\ -Restart -ErrorAction Stop
         }
         else
         {
-            Add-Computer -DomainName $domain -NewName $newCompName -Credential $shortDomain\ -Restart -ErrorAction Stop
+            #            Add-Computer -DomainName $domain -Credential $credential $shortDomain\ -Restart -ErrorAction Stop
         }
     }
     catch
