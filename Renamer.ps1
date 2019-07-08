@@ -30,25 +30,10 @@ PS> .\Renamer.ps1
 # Dry run only $true/$false
 $dryRun = $true
 
-# Actions
-$joinDomain = $false
-$joinDomainLocally = $false
-
-# Declarations
-$domain = "ad.biu.ac.il"
-$shortDomain = "CCDOM"
-$destOU = "OU=Computers,OU=Physics,OU=ESC,DC=ad,DC=biu,DC=ac,DC=il"
-$department = "PH"
-
-# Network Params
-$fullIPAddress = ((Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString)
-$splitPAddress = ($fullIPAddress -split ('\.'))
-$network = [int]$splitPAddress[1]
-$vlan = "{0:000}" -f [int]$splitPAddress[2]
-$ipAddress = "{0:000}" -f [int]$splitPAddress[3]
-
-# Check if computer has a valid network address: *.71.*.*
-if ($network -eq 70)
+# Check if computer has a valid network address
+# Exit if connection is not detected or in the wrong format:
+# *.71.*.*
+if ($network -eq 71)
 {
     Write-Host -ForegroundColor Green "Network ready $fullIPAddress"
 }
@@ -58,7 +43,36 @@ else
     exit 1
 }
 
-# Computer name
+# Actions
+$joinDomain = $false
+$joinDomainLocally = $false
+
+# Declarations
+$domain = "ad.biu.ac.il"
+$shortDomain = "CCDOM"
+
+# Network Params
+$fullIPAddress = ((Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString)
+$splitPAddress = ($fullIPAddress -split ('\.'))
+$network = [int]$splitPAddress[1]
+$vlan = "{0:000}" -f [int]$splitPAddress[2]
+$ipAddress = "{0:000}" -f [int]$splitPAddress[3]
+
+# Set Destination OU and Department by IP Address: *.*.VLAN.*
+# if no VLAN is in the valid list, Computer Account will be placed in 'Computers' Generic OU with 'COMP' prefix.
+switch ($vlan)
+{
+    184 {
+        $department = "PH"
+        $destOU = "OU=Computers,OU=Physics,OU=ESC,DC=ad,DC=biu,DC=ac,DC=il"
+    }
+    Default {
+        $department = "COMP"
+        $destOU = "CN=Computers,DC=ad,DC=biu,DC=ac,DC=il"
+    }
+}
+
+# Get current computer name and new computer name
 $currentComputerName = Get-Content env:computername
 $newCompName = $department + $vlan + $ipAddress
 
@@ -69,7 +83,6 @@ if ($newCompName -ne $currentComputerName)
     if (!($dryRun)) {
         Rename-Computer -NewName $newCompName -Restart -ErrorAction Stop
     }
-
 }
 
 # AD Search params
