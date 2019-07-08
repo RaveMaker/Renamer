@@ -3,14 +3,15 @@
 Joins a computer to domain.
 
 .DESCRIPTION
-The Renamer.ps1 script updates the computer account name
-and joins it to the specified domain.
+The Renamer.ps1 script renames the computer account name if needed
+and joins it to a specified domain in a specified OU.
 
 - Get Current IP Address
 - Calculate New Computer Name
 - Get current Computer Name and rename if needed including reboot
 - Check if Local Computer is Domain joined
-- Check if Object is in AD, if not then join in specific ou else just join and reboot
+- Check if Object exists in AD
+- Join to a specified OU if available or just join to a default computers OU
 
 .PARAMETER InputPath
 Specifies the path to the CSV-based input file.
