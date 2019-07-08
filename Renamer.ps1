@@ -61,17 +61,19 @@ $ipAddress = "{0:000}" -f [int]$splitPAddress[3]
 
 # Set Destination OU and Department by IP Address: *.*.VLAN.*
 # if no VLAN is in the valid list, Computer Account will be placed in 'Computers' Generic OU with 'COMP' prefix.
-switch ($vlan)
-{
-    184 {
-        $department = "PH"
-        $destOU = "OU=Computers,OU=Physics,OU=ESC,DC=ad,DC=biu,DC=ac,DC=il"
-    }
-    Default {
-        $department = "COMP"
-        $destOU = "CN=Computers,DC=ad,DC=biu,DC=ac,DC=il"
+$file = Get-Content .\vlan.txt
+$file | foreach {
+    if ($_.StartsWith($vlan + " ")) {
+        $line = ($_ -split (' '))
+        $department = $line[1]
+        $destOU = $line[2]
     }
 }
+if (!($department)) {
+    $department = "COMP"
+    $destOU = "CN=Computers,DC=ad,DC=biu,DC=ac,DC=il"
+}
+
 
 # Get current computer name and new computer name
 $currentComputerName = Get-Content env:computername
