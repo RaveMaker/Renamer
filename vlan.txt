@@ -3,4 +3,5 @@
 # VLAN Department OU
 # Example:
 # 120 IT "CN=Computers,DC=ad,DC=biu,DC=ac,DC=il"
+183 PH "OU=Computers,OU=Physics,OU=ESC,DC=ad,DC=biu,DC=ac,DC=il"
 184 PH "OU=Computers,OU=Physics,OU=ESC,DC=ad,DC=biu,DC=ac,DC=il"

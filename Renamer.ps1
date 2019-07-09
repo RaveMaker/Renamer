@@ -30,6 +30,16 @@ PS> .\Renamer.ps1
 
 # Dry run only $true/$false
 $dryRun = $true
+if ($dryRun) {
+    Write-Host -ForegroundColor Red "Script is running in dry mode."
+}
+
+# Network Params
+$fullIPAddress = ((Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString)
+$splitPAddress = ($fullIPAddress -split ('\.'))
+$network = [int]$splitPAddress[1]
+$vlan = "{0:000}" -f [int]$splitPAddress[2]
+$ipAddress = "{0:000}" -f [int]$splitPAddress[3]
 
 # Check if computer has a valid network address
 # Exit if connection is not detected or in the wrong format:
@@ -52,13 +62,6 @@ $joinDomainLocally = $false
 $domain = "ad.biu.ac.il"
 $shortDomain = "CCDOM"
 
-# Network Params
-$fullIPAddress = ((Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString)
-$splitPAddress = ($fullIPAddress -split ('\.'))
-$network = [int]$splitPAddress[1]
-$vlan = "{0:000}" -f [int]$splitPAddress[2]
-$ipAddress = "{0:000}" -f [int]$splitPAddress[3]
-
 # Set Destination OU and Department by IP Address: *.*.VLAN.*
 # if no VLAN is in the valid list, Computer Account will be placed in 'Computers' Generic OU with 'COMP' prefix.
 $file = Get-Content .\vlan.txt
@@ -67,13 +70,14 @@ $file | foreach {
         $line = ($_ -split (' '))
         $department = $line[1]
         $destOU = $line[2]
+        Write-Host -ForegroundColor Green "Department found: $department"
     }
 }
 if (!($department)) {
     $department = "COMP"
     $destOU = "CN=Computers,DC=ad,DC=biu,DC=ac,DC=il"
+    Write-Host -ForegroundColor Red "Department not found, using default values"
 }
-
 
 # Get current computer name and new computer name
 $currentComputerName = Get-Content env:computername
@@ -88,13 +92,6 @@ if ($newCompName -ne $currentComputerName)
     }
 }
 
-# AD Search params
-$credential = Get-Credential($shortDomain + "\")
-$domaininfo = New-Object DirectoryServices.DirectoryEntry("LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il", $credential.UserName, $credential.Password)
-$searcher = New-Object System.DirectoryServices.DirectorySearcher($domaininfo)
-$searcher.filter = "(cn=$newCompName)"
-$searchparm = $searcher.FindOne
-
 # Check if computer is already joined to domain (locally)
 if ((Get-WmiObject win32_computersystem).PartOfDomain)
 {
@@ -107,8 +104,17 @@ else
     $joinDomainLocally = $true
 }
 
+# AD Search params
+$credential = Get-Credential -Credential ($shortDomain + "\")
+$domainInfo = New-Object DirectoryServices.DirectoryEntry("LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il", $credential.UserName, $credential.GetNetworkCredential().Password)
+$searcher = New-Object System.DirectoryServices.DirectorySearcher($domainInfo)
+$searcher.filter = "((cn=$newCompName))"
+$searchResult = $searcher.FindOne()
+
+Write-Host $searchResult
+
 # Check if a Computer account object already exist in AD
-if (!($searchparm))
+if (!($searchResult))
 {
     Write-Host -ForegroundColor Green "Computer account not found in AD"
     $joinDomain = $true
