@@ -113,6 +113,19 @@ $searcher = New-Object System.DirectoryServices.DirectorySearcher($domainInfo)
 $searcher.filter = "((cn=$newCompName))"
 $searchResult = $searcher.FindOne()
 
+# Validate Credentials
+try {
+    $UserPath = $searcher.FindOne()
+} catch {
+    "Unable to find user."
+    exit 1
+}
+
+if (-not $UserPath) {
+    "Unable to find user."
+    exit 1
+}
+
 Write-Host $searchResult
 
 # Check if a Computer account object already exist in AD
