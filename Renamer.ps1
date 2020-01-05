@@ -106,7 +106,7 @@ else
 }
 
 # AD Search params
-$credential = Get-Credential -Credential ($shortDomain + "\")
+$credential = Get-Credential -Credential ($shortDomain + "\") -ErrorAction Stop
 $domainInfo = New-Object DirectoryServices.DirectoryEntry("LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il", $credential.UserName, $credential.GetNetworkCredential().Password)
 $searcher = New-Object System.DirectoryServices.DirectorySearcher($domainInfo)
 $searcher.filter = "((cn=$newCompName))"
