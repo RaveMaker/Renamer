@@ -1,1 +1,1 @@
-C:\Windows\Renamer\Renamer.ps1
+powershell C:\Windows\Renamer\Renamer.ps1

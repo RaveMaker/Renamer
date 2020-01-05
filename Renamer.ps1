@@ -26,7 +26,8 @@ None. Renamer.ps1 does not generate any output.
 PS> .\Renamer.ps1
 #>
 
-# Set-ExecutionPolicy –ExecutionPolicy RemoteSigned
+# Enable unsigned scripts
+# Set-ExecutionPolicy RemoteSigned
 
 # Dry run only $true/$false
 $dryRun = $true
@@ -64,7 +65,7 @@ $shortDomain = "CCDOM"
 
 # Set Destination OU and Department by IP Address: *.*.VLAN.*
 # if no VLAN is in the valid list, Computer Account will be placed in 'Computers' Generic OU with 'COMP' prefix.
-$file = Get-Content .\vlan.txt
+$file = Get-Content c:\Windows\Renamer\vlan.txt
 $file | foreach {
     if ($_.StartsWith($vlan + " ")) {
         $line = ($_ -split (' '))
