@@ -107,7 +107,15 @@ else
 
 # AD Search params
 
-if ($credential = $host.ui.PromptForCredential("Need credentials", "Please enter your user name and password.", "CCDOM\$env:username", "")){}else{exit}
+#if ($credential = $host.ui.PromptForCredential("Need credentials", "Please enter your user name and password.", "CCDOM\$env:username", "")){}else{exit}
+
+$user = "naftalo"
+$server = "CCDOM"
+$file = "c:\Windows\Renamer\password.txt"
+
+# Retrieve password later on, whenever you need it
+$credential = New-Object -TypeName System.Management.Automation.PSCredential($user, (Get-Content $file | ConvertTo-SecureString))
+
 $domainInfo = New-Object DirectoryServices.DirectoryEntry("LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il", $credential.UserName, $credential.GetNetworkCredential().Password)
 $searcher = New-Object System.DirectoryServices.DirectorySearcher($domainInfo)
 $searcher.filter = "((cn=$newCompName))"
