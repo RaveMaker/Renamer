@@ -44,8 +44,8 @@ $ipAddress = "{0:000}" -f [int]$splitPAddress[3]
 
 # Check if computer has a valid network address
 # Exit if connection is not detected or in the wrong format:
-# *.71.*.*
-if ($network -eq 71)
+# *.70.*.* , *.71.*.*
+if (($network -eq 70) -or ($network -eq 71))
 {
     Write-Host -ForegroundColor Green "Network ready $fullIPAddress"
 }
