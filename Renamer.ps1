@@ -111,18 +111,17 @@ if ($credential = $host.ui.PromptForCredential("Need credentials", "Please enter
 $domainInfo = New-Object DirectoryServices.DirectoryEntry("LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il", $credential.UserName, $credential.GetNetworkCredential().Password)
 $searcher = New-Object System.DirectoryServices.DirectorySearcher($domainInfo)
 $searcher.filter = "((cn=$newCompName))"
-$searchResult = $searcher.FindOne()
 
 # Validate Credentials
 try {
-    $UserPath = $searcher.FindOne()
+    $searchResult = $searcher.FindOne()
 } catch {
-    "Unable to find user."
+    "Unable to find user 1."
     exit 1
 }
 
-if (-not $UserPath) {
-    "Unable to find user."
+if (-not $searchResult) {
+    "Unable to find user 2."
     exit 1
 }
 
