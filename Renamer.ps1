@@ -116,12 +116,13 @@ $searcher.filter = "((cn=$newCompName))"
 try {
     $searchResult = $searcher.FindOne()
 } catch {
-    "Unable to find user 1."
+    "Unable to find user."
     exit 1
 }
 
-if (-not $searchResult) {
-    "Unable to find user 2."
+if (!($searchResult))
+{
+    "Unable to find user."
     exit 1
 }
 
