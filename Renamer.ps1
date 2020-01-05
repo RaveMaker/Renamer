@@ -121,12 +121,6 @@ try {
     exit 1
 }
 
-if (!($searchResult))
-{
-    "Unable to find user."
-    exit 1
-}
-
 Write-Host $searchResult
 
 # Check if a Computer account object already exist in AD
