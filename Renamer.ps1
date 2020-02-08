@@ -4,14 +4,14 @@ Joins a computer to domain.
 
 .DESCRIPTION
 The Renamer.ps1 script renames the computer account name if needed
-and joins it to a specified domain in a specified OU.
+and joins it to a specified ou in a specified domain.
 
 - Get Current IP Address
 - Calculate New Computer Name
 - Get current Computer Name and rename if needed including reboot
 - Check if Local Computer is Domain joined
-- Check if Object exists in AD
-- Join to a specified OU if available or just join to a default computers OU
+- Check if Computer Account exists in AD
+- Join to a specified OU if available or just join to the default computers OU
 
 .PARAMETER InputPath
 Specifies the path to the CSV-based input file.
@@ -36,16 +36,31 @@ if ($dryRun) {
 }
 
 # Network Params
+$vlanFile = "c:\Windows\Renamer\vlan.txt"
+# *.71.*.*/255.255.0.0
+$validNetwork = 71
+
+# Domain User Params
+$user = "accountop"
+$passFile = "c:\Windows\Renamer\password.txt"
+
+# Domain Params
+$domain = "ad.biu.ac.il"
+$shortDomain = "CCDOM"
+$defaultCompOU = "CN=Computers,DC=ad,DC=biu,DC=ac,DC=il"
+$defaultDepartment = "COMP"
+$ldapUrl = "LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il"
+
+
+# Check if computer has a valid network address
 $fullIPAddress = ((Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString)
 $splitPAddress = ($fullIPAddress -split ('\.'))
 $network = [int]$splitPAddress[1]
 $vlan = "{0:000}" -f [int]$splitPAddress[2]
 $ipAddress = "{0:000}" -f [int]$splitPAddress[3]
 
-# Check if computer has a valid network address
-# Exit if connection is not detected or in the wrong format:
-# *.70.*.* , *.71.*.*
-if (($network -eq 70) -or ($network -eq 71))
+# Exit if connection is not detected or in the wrong format
+if ($network -eq $validNetwork)
 {
     Write-Host -ForegroundColor Green "Network ready $fullIPAddress"
 }
@@ -55,28 +70,24 @@ else
     exit 1
 }
 
-# Actions
+# Default Actions
 $joinDomain = $false
 $joinDomainLocally = $false
 
-# Declarations
-$domain = "ad.biu.ac.il"
-$shortDomain = "CCDOM"
-
-# Set Destination OU and Department by IP Address: *.*.VLAN.*
-# if no VLAN is in the valid list, Computer Account will be placed in 'Computers' Generic OU with 'COMP' prefix.
-$file = Get-Content c:\Windows\Renamer\vlan.txt
-$file | foreach {
+# Get Destination OU and Department by IP Address: *.*.VLAN.* from VLAN file
+Get-Content $vlanFile | ForEach-Object {
     if ($_.StartsWith($vlan + " ")) {
         $line = ($_ -split (' '))
         $department = $line[1]
         $destOU = $line[2]
         Write-Host -ForegroundColor Green "Department found: $department"
+        Write-Host -ForegroundColor Green "OU found: $destOU"
     }
 }
-if (!($department)) {
-    $department = "COMP"
-    $destOU = "CN=Computers,DC=ad,DC=biu,DC=ac,DC=il"
+# if no VLAN is in the valid list, Computer Account will be placed in default OU with default computer account name prefix.
+if (!($department) -Or !($destOU)) {
+    $department = $defaultDepartment
+    $destOU = $defaultCompOU
     Write-Host -ForegroundColor Red "Department not found, using default values"
 }
 
@@ -105,18 +116,14 @@ else
     $joinDomainLocally = $true
 }
 
-# AD Search params
+# Prompt for credentials
+#if ($credential = $host.ui.PromptForCredential("Need credentials", "Please enter your user name and password.", "$shortDomain\$env:username", "")){}else{exit}
 
-#if ($credential = $host.ui.PromptForCredential("Need credentials", "Please enter your user name and password.", "CCDOM\$env:username", "")){}else{exit}
+# Retrieve password from password file
+$credential = New-Object -TypeName System.Management.Automation.PSCredential($user, (Get-Content $passFile | ConvertTo-SecureString))
 
-$user = "naftalo"
-$server = "CCDOM"
-$file = "c:\Windows\Renamer\password.txt"
-
-# Retrieve password later on, whenever you need it
-$credential = New-Object -TypeName System.Management.Automation.PSCredential($user, (Get-Content $file | ConvertTo-SecureString))
-
-$domainInfo = New-Object DirectoryServices.DirectoryEntry("LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il", $credential.UserName, $credential.GetNetworkCredential().Password)
+# Search for CN in domain
+$domainInfo = New-Object DirectoryServices.DirectoryEntry($ldapUrl, $credential.UserName, $credential.GetNetworkCredential().Password)
 $searcher = New-Object System.DirectoryServices.DirectorySearcher($domainInfo)
 $searcher.filter = "((cn=$newCompName))"
 $searchResult = $null
@@ -128,7 +135,6 @@ try {
     "Unable to find user."
     exit 1
 }
-
 Write-Host $searchResult
 
 # Check if a Computer account object already exist in AD
