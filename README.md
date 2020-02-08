@@ -18,7 +18,7 @@ The Renamer.ps1 script renames the computer account name if needed and joins it 
 
 2. Generate a password file using 'gen-pass.ps1' script
 
-3. Edit the following variables:
+3. Edit 'reanmer.ps1' and change the following variables:
 
 ```
 $dryRun = $true
@@ -31,7 +31,16 @@ $defaultDepartment = "COMP"
 $ldapUrl = "LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il"
 ```
 
-4. run 'Install.cmd' as Administrator. It will create a service Called "Renamer" and will execute it at startup.
+4. Edit 'vlan.txt' file and add your departments and assosicated OUs, for example:
+```
+# each record should be in a separate line in the following format:
+# VLAN Department OU
+120 IT "CN=Computers,DC=ad,DC=biu,DC=ac,DC=il"
+```
+
+5. run 'Install.cmd' as Administrator. It will create a service Called "Renamer" and will execute it at startup.
+
+
 
 Author: [RaveMaker][RaveMaker].
 
