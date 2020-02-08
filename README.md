@@ -22,15 +22,7 @@ $defaultDepartment = "COMP"
 $ldapUrl = "LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il"
 ```
 
-### Use "instsrv.exe","srvany.exe" to create a service for it:
-1. The installation files assume folder location of C:\Windows\Renamer\ to change edit:
-```
-Install.cmd, Renamer.cmd, Renamer.reg
-```
-
-2. Install.cmd will create service Called "Renamer" and will execute it at startup.
-
-#### It will need 2 restarts to rename and join the computer to active directory.
+4. run 'Install.cmd' as Administrator. It will create a service Called "Renamer" and will execute it at startup.
 
 Author: [RaveMaker][RaveMaker].
 
