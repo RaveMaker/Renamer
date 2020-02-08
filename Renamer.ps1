@@ -31,18 +31,12 @@ PS> .\Renamer.ps1
 
 # Dry run only $true/$false
 $dryRun = $true
-if ($dryRun) {
-    Write-Host -ForegroundColor Red "Script is running in dry mode."
-}
 
-# Network Params
-$vlanFile = "c:\Windows\Renamer\vlan.txt"
-# *.71.*.*/255.255.0.0
+# Valid Network IP *.71.*.*/255.255.0.0
 $validNetwork = 71
 
 # Domain User Params
-$user = "accountop"
-$passFile = "c:\Windows\Renamer\password.txt"
+$domainUser = "accountop"
 
 # Domain Params
 $domain = "ad.biu.ac.il"
@@ -51,6 +45,17 @@ $defaultCompOU = "CN=Computers,DC=ad,DC=biu,DC=ac,DC=il"
 $defaultDepartment = "COMP"
 $ldapUrl = "LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il"
 
+# Files
+$passFile = "c:\Windows\Renamer\password.txt"
+$vlanFile = "c:\Windows\Renamer\vlan.txt"
+
+# Default Actions
+$joinDomain = $false
+$joinDomainLocally = $false
+
+if ($dryRun) {
+    Write-Host -ForegroundColor Red "Script is running in dry mode."
+}
 
 # Check if computer has a valid network address
 $fullIPAddress = ((Test-Connection -ComputerName $env:ComputerName -Count 1).IPV4Address.IPAddressToString)
@@ -69,10 +74,6 @@ else
     Write-Host -ForegroundColor Red "Network disconnected"
     exit 1
 }
-
-# Default Actions
-$joinDomain = $false
-$joinDomainLocally = $false
 
 # Get Destination OU and Department by IP Address: *.*.VLAN.* from VLAN file
 Get-Content $vlanFile | ForEach-Object {
@@ -120,7 +121,7 @@ else
 #if ($credential = $host.ui.PromptForCredential("Need credentials", "Please enter your user name and password.", "$shortDomain\$env:username", "")){}else{exit}
 
 # Retrieve password from password file
-$credential = New-Object -TypeName System.Management.Automation.PSCredential($user, (Get-Content $passFile | ConvertTo-SecureString))
+$credential = New-Object -TypeName System.Management.Automation.PSCredential($domainUser, (Get-Content $passFile | ConvertTo-SecureString))
 
 # Search for CN in domain
 $domainInfo = New-Object DirectoryServices.DirectoryEntry($ldapUrl, $credential.UserName, $credential.GetNetworkCredential().Password)
