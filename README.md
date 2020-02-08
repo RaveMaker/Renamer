@@ -1,5 +1,5 @@
-Computer-Rename-and-Join-Domain
-===============================
+Renamer - Computer-Rename-and-Join-Domain
+=========================================
 
 PowerShell Script - Change computer name, join Active Directory domain and place computer account in a specified OU
 
@@ -7,7 +7,9 @@ PowerShell Script - Change computer name, join Active Directory domain and place
 
 1. Clone this script from github or copy the files manually to 'C:\Windows\Renamer'
 
-2. Edit the following variables:
+2. Generate a password file using 'gen-pass.ps1' script
+
+3. Edit the following variables:
 
 ```
 $dryRun = $true
