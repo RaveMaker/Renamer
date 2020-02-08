@@ -3,7 +3,7 @@
 Joins a computer to domain.
 
 .DESCRIPTION
-The Renamer.ps1 script renames the computer account name if needed
+The Renamer.ps1 script renames the computer account if needed
 and joins it to a specified ou in a specified domain.
 
 - Get Current IP Address

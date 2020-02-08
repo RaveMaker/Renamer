@@ -3,7 +3,7 @@ Renamer - Computer-Rename-and-Join-Domain
 
 PowerShell Script
 
-The Renamer.ps1 script renames the computer account name if needed and joins it to a specified ou in a specified domain.
+The 'Renamer.ps1' script renames the computer account if needed and joins it to a specified ou in a specified domain.
 
 - Get Current IP Address
 - Calculate New Computer Name
@@ -39,9 +39,6 @@ $ldapUrl = "LDAP://ad.biu.ac.il/DC=ad,DC=biu,DC=ac,DC=il"
 ```
 
 5. run 'Install.cmd' as Administrator. It will create a service Called "Renamer" and will execute it at startup.
-
-
-
 
 Author: [RaveMaker][RaveMaker].
 
