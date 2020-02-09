@@ -18,7 +18,7 @@ The 'Renamer.ps1' script renames the computer account if needed and joins it to 
 
 2. Generate a password file using 'gen-pass.ps1' script
 
-3. Edit 'reanmer.ps1' and change the following variables:
+3. Edit 'renamer.ps1' and change the following variables:
 
 ```
 $dryRun = $true
